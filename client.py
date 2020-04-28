@@ -8,6 +8,7 @@ import sys
 
 class Client:
 	DISCONNECT_MESSAGE = "!DISCONNECT"
+	HASH_METOD = "MD5"
 
 	def __init__(self, ADDR, username):
 		self.ADDR = ADDR
@@ -34,8 +35,14 @@ class Client:
 			self.pubkey = pub_file_content.decode()
 
 	def digital_signature(self, msg):
-		sign = rsa.sign(msg, self.privkey, hash_method="MD5")
+		sign = rsa.sign(msg, self.privkey, self.HASH_METOD)
 		return sign.hex() # sign
+
+	def verify_sign(self, msg, sign, sender):
+		pubkey_send = rsa.key.PublicKey.load_pkcs1(self.active_users[sender])
+		if rsa.verify(msg, bytes.fromhex(sign), pubkey_send) == self.HASH_METOD:
+			return True
+		return False
 
 	def disconnection(self):
 		data = {"sender": self.username, "receiver": "disconnect", "msg": self.DISCONNECT_MESSAGE}
@@ -69,8 +76,8 @@ class Client:
 			else:
 				crypto = bytes.fromhex(data["msg"])
 				msg = rsa.decrypt(crypto, self.privkey).decode()
-				# print(rsa.verify(msg, bytes.fromhex(data["sign"]), self.active_users[data["sender"]]))	TODO: CHECK SIGNATURE 
-				print(f"\n[NEW MESSAGE VERIFIED] {data['sender']}: {msg} \nMessage: ", end="")
+				if self.verify_sign(msg.encode(), data["sign"], data["sender"]):
+					print(f"\n[NEW MESSAGE VERIFIED] {data['sender']}: {msg} \nMessage: ", end="")
 
 	def run(self):
 		try: 
