@@ -33,6 +33,10 @@ class Client:
 				pub_file_content = f.read()
 			self.pubkey = pub_file_content.decode()
 
+	def digital_signature(self, msg):
+		sign = rsa.sign(msg, self.privkey, hash_method="MD5")
+		return sign.hex() # sign
+
 	def disconnection(self):
 		data = {"sender": self.username, "receiver": "disconnect", "msg": self.DISCONNECT_MESSAGE}
 		self.client.send(json.dumps(data).encode())
@@ -44,7 +48,7 @@ class Client:
 	def send(self, receiver, msg):
 		pubkey_recv = rsa.key.PublicKey.load_pkcs1(self.active_users[receiver])
 		crypto = rsa.encrypt(msg, pubkey_recv)
-		data = {"sender": self.username, "receiver": receiver, "msg": crypto.hex()}
+		data = {"sender": self.username, "receiver": receiver, "msg": crypto.hex(), "sign": self.digital_signature(msg)}
 		self.client.send(json.dumps(data).encode())
 
 	def update_users(self, users):
@@ -65,7 +69,8 @@ class Client:
 			else:
 				crypto = bytes.fromhex(data["msg"])
 				msg = rsa.decrypt(crypto, self.privkey).decode()
-				print(f"\n[NEW MESSAGE] {data['sender']}: {msg} \nMessage: ", end="")
+				# print(rsa.verify(msg, bytes.fromhex(data["sign"]), self.active_users[data["sender"]]))	TODO: CHECK SIGNATURE 
+				print(f"\n[NEW MESSAGE VERIFIED] {data['sender']}: {msg} \nMessage: ", end="")
 
 	def run(self):
 		try: 

@@ -18,8 +18,8 @@ class Server:
 		for user, info in self.active_users.items():
 			info[0].send(json.dumps(users).encode())
 	
-	def send_message(self, receiver, msg, sender):
-		data = {"sender": sender, "msg": msg}
+	def send_message(self, receiver, msg, sender, sign):
+		data = {"sender": sender, "msg": msg, "sign": sign}
 		conn = self.active_users[receiver][0]
 		conn.send(json.dumps(data).encode())
 
@@ -37,7 +37,7 @@ class Server:
 		self.send_list_active_users()
 		return data["username"]
 
-	def handle_client(self, conn, addr):
+	def listen_client(self, conn, addr):
 		username = self.init_data(conn)
 		while True:
 			msg = conn.recv(1024).decode()
@@ -46,7 +46,7 @@ class Server:
 				self.disconnect_client(username, conn)
 			else:
 				print(f"[MESSAGE] {data}")
-				self.send_message(data["receiver"], data["msg"], data["sender"])
+				self.send_message(data["receiver"], data["msg"], data["sender"], data["sign"])
 
 	def run(self):
 		print("[STARTING] server is starting...")
@@ -55,7 +55,7 @@ class Server:
 			print(f"[LISTENING] Server is listening on {ADDR}")
 			while True:
 				conn, addr = self.server.accept()
-				thread = threading.Thread(target=self.handle_client, args=(conn, addr))
+				thread = threading.Thread(target=self.listen_client, args=(conn, addr))
 				thread.start()
 				time.sleep(1)
 				print(f"[ACTIVE CONNECTIONS] {threading.activeCount() - 1}")
