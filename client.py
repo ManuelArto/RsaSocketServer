@@ -78,6 +78,8 @@ class Client:
 				msg = rsa.decrypt(crypto, self.privkey).decode()
 				if self.verify_sign(msg.encode(), data["sign"], data["sender"]):
 					print(f"\n[NEW MESSAGE VERIFIED] {data['sender']}: {msg} \nMessage: ", end="")
+				else:
+					print("[MESSAGE NOT VERIFIED] You received a message not verified \nMessage: ", end="")
 
 	def run(self):
 		try: 
