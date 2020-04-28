@@ -45,6 +45,7 @@ class Server:
 			if data["msg"] == "!DISCONNECT":
 				self.disconnect_client(username, conn)
 			else:
+				print(f"[MESSAGE] {data}")
 				self.send_message(data["receiver"], data["msg"], data["sender"])
 
 	def run(self):
@@ -60,7 +61,7 @@ class Server:
 				print(f"[ACTIVE CONNECTIONS] {threading.activeCount() - 1}")
 				print(f"[USERS] {list(self.active_users.keys())}")
 		except Exception as e:
-			print(e)
+			# print(e)
 			self.server.close()
 
 

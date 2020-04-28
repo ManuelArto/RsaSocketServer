@@ -33,6 +33,10 @@ class Client:
 				pub_file_content = f.read()
 			self.pubkey = pub_file_content.decode()
 
+	def disconnection(self):
+		data = {"sender": self.username, "receiver": "disconnect", "msg": self.DISCONNECT_MESSAGE}
+		self.client.send(json.dumps(data).encode())
+
 	def send_broadcast(self, msg):
 		for receiver in self.active_users:
 			self.send(receiver, msg)
@@ -64,28 +68,33 @@ class Client:
 				print(f"\n[NEW MESSAGE] {data['sender']}: {msg} \nMessage: ", end="")
 
 	def run(self):
-		print(f"[CONNECTION] Starting connection to {ADDR}")
-		self.client.connect(self.ADDR)
-		thread = threading.Thread(target=self.listen)
-		thread.start()
-		while True:
-			msg = input("Message: ")
-			if msg != self.DISCONNECT_MESSAGE:
+		try: 
+			print(f"[CONNECTION] Starting connection to {ADDR}")
+			self.client.connect(self.ADDR)
+			thread = threading.Thread(target=self.listen)
+			thread.start()
+			while True:
+				msg = input("Message: ")
+				if msg == self.DISCONNECT_MESSAGE:
+					self.disconnection()
+					break;
 				print(f"\n[ACTIVE USERS] {list(self.active_users.keys()) + ['broadcast']}")
 				receiver = input("Receiver: ")
 				if receiver not in list(self.active_users.keys()) + ["broadcast"]:
 					print(f"not a valid username")
 					continue
-			if receiver == "broadcast":
-				self.send_broadcast(msg.encode())
-			else:
-				self.send(receiver, msg.encode())
+				if receiver == "broadcast":
+					self.send_broadcast(msg.encode())
+				else:
+					self.send(receiver, msg.encode())
+		except Exception as e:
+			# print(e)
+			pass
 
 
 IP = socket.gethostbyname(socket.gethostname())
 PORT = int(sys.argv[1])
 ADDR = (IP, PORT)
-
 
 username = input("Insert username: ")
 client = Client(ADDR, username)
