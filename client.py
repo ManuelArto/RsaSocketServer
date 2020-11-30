@@ -40,9 +40,11 @@ class Client:
 
 	def verify_sign(self, msg, sign, sender):
 		pubkey_send = rsa.key.PublicKey.load_pkcs1(self.active_users[sender])
-		if rsa.verify(msg, bytes.fromhex(sign), pubkey_send) == self.HASH_METOD:
+		try:
+			used_hash = rsa.verify(msg, bytes.fromhex(sign), pubkey_send)
 			return True
-		return False
+		except rsa.VerificationError:
+			return False
 
 	def disconnection(self):
 		data = {"sender": self.username, "receiver": "disconnect", "msg": self.DISCONNECT_MESSAGE}
