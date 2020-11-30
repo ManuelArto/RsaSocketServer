@@ -1,8 +1,12 @@
+# Used For Creating Connection
 import socket
+# Used For reliable sending of messages
 import json
 import rsa
 from binascii import hexlify
+# Used For Running commands On the sytem
 import os
+# Used To seprate Two Processes
 import threading
 import sys
 
